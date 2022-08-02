@@ -3,6 +3,7 @@ package com.example.samplebookshop.catalog.application;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.catalog.domain.CatalogRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,14 +11,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 class CatalogService implements CatalogUseCase {
 
     private CatalogRepository catalogRepository;
-
-
-    public CatalogService(CatalogRepository catalogRepository) {
-        this.catalogRepository = catalogRepository;
-    }
 
     @Override
     public List<Book> findByTitle(String title){
@@ -46,8 +43,9 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public void addBook(){
-
+    public void addBook(CreateBookCommand command){
+        Book book = new Book(command.getTitle(), command.getAuthor(), command.getYear());
+        this.catalogRepository.save(book);
     }
 
     @Override
