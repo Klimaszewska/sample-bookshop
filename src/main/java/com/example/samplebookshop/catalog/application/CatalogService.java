@@ -18,12 +18,12 @@ class CatalogService implements CatalogUseCase {
     private CatalogRepository catalogRepository;
 
     @Override
-    public List<Book> findAll(){
+    public List<Book> findAll() {
         return catalogRepository.findAll();
     }
 
     @Override
-    public List<Book> findByTitle(String title){
+    public List<Book> findByTitle(String title) {
         return catalogRepository.findAll()
                 .stream()
                 .filter(book -> book.getTitle().startsWith(title))
@@ -39,7 +39,7 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public Optional<Book> findOneByTitleAndAuthor(String title, String author){
+    public Optional<Book> findOneByTitleAndAuthor(String title, String author) {
         return catalogRepository.findAll()
                 .stream()
                 .filter(book -> book.getAuthor().startsWith(author))
@@ -48,27 +48,26 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public void addBook(CreateBookCommand command){
+    public void addBook(CreateBookCommand command) {
         Book book = new Book(command.getTitle(), command.getAuthor(), command.getYear());
         this.catalogRepository.save(book);
     }
 
     @Override
-    public void removeById(Long Id){
+    public void removeById(Long id) {
+        this.catalogRepository.removeById(id);
 
     }
 
     @Override
     public UpdateBookResponse updateBook(UpdateBookCommand command) {
         return catalogRepository.findById(command.getId())
-        .map(book -> {
-            book.setTitle(command.getTitle());
-            book.setAuthor(command.getAuthor());
-            book.setYear(command.getYear());
-            catalogRepository.save(book);
-            return UpdateBookResponse.SUCCESS;
-        })
-        .orElseGet(() -> new UpdateBookResponse(false, Collections.singletonList("Book not found. Id: " + command.getId())));
+                .map(book -> {
+                    Book updatedBook = command.updateFields(book);
+                    catalogRepository.save(updatedBook);
+                    return UpdateBookResponse.SUCCESS;
+                })
+                .orElseGet(() -> new UpdateBookResponse(false, Collections.singletonList("Book not found. Id: " + command.getId())));
 
     }
 

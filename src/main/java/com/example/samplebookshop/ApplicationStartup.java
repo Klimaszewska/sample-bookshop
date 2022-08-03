@@ -1,6 +1,7 @@
 package com.example.samplebookshop;
 
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
+import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookResponse;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.CreateBookCommand;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookCommand;
 import com.example.samplebookshop.catalog.domain.Book;
@@ -15,9 +16,12 @@ import java.util.List;
 public class ApplicationStartup implements CommandLineRunner {
 
     private final CatalogUseCase catalog;
-    @Value("${bookshop.catalog.query.title}") String title;
-    @Value("${bookshop.catalog.query.author}") String author;
-    @Value("${bookshop.catalog.limit}") Long limit;
+    @Value("${bookshop.catalog.query.title}")
+    String title;
+    @Value("${bookshop.catalog.query.author}")
+    String author;
+    @Value("${bookshop.catalog.limit}")
+    Long limit;
 
     public ApplicationStartup(CatalogUseCase catalog) {
         this.catalog = catalog;
@@ -37,13 +41,12 @@ public class ApplicationStartup implements CommandLineRunner {
         System.out.println("Updating...");
         catalog.findOneByTitleAndAuthor(title, author).
                 ifPresent(book -> {
-                    UpdateBookCommand command = new UpdateBookCommand(
-                            book.getId(),
-                            "Pan Tadeusz - Updated",
-                            book.getAuthor(),
-                            book.getYear()
-                    );
-                    catalog.updateBook(command);
+                    UpdateBookCommand command = UpdateBookCommand.builder()
+                            .id(book.getId())
+                            .title("Pan Tadeusz - Updated")
+                            .build();
+                    UpdateBookResponse response = catalog.updateBook(command);
+                    System.out.println("Book update result: " + response.isSuccess());
                 });
     }
 
