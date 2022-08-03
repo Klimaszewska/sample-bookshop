@@ -6,6 +6,8 @@ import lombok.Value;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.emptyList;
+
 public interface CatalogUseCase {
     List<Book> findByTitle(String title);
 
@@ -19,12 +21,28 @@ public interface CatalogUseCase {
 
     void removeById(Long Id);
 
-    void updateBook();
+    UpdateBookResponse updateBook(UpdateBookCommand command);
 
     @Value
     class CreateBookCommand {
         String title;
         String author;
         Integer year;
+    }
+
+    @Value
+    class UpdateBookCommand {
+        Long id;
+        String title;
+        String author;
+        Integer year;
+    }
+
+    @Value
+    class UpdateBookResponse {
+        public static UpdateBookResponse SUCCESS = new UpdateBookResponse(true, emptyList());
+
+        boolean success;
+        List<String> errors;
     }
 }

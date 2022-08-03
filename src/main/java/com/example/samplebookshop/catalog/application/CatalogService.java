@@ -6,6 +6,7 @@ import com.example.samplebookshop.catalog.domain.CatalogRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,6 +16,11 @@ import java.util.stream.Collectors;
 class CatalogService implements CatalogUseCase {
 
     private CatalogRepository catalogRepository;
+
+    @Override
+    public List<Book> findAll(){
+        return catalogRepository.findAll();
+    }
 
     @Override
     public List<Book> findByTitle(String title){
@@ -33,13 +39,12 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public List<Book> findAll(){
-        return null;
-    }
-
-    @Override
     public Optional<Book> findOneByTitleAndAuthor(String title, String author){
-        return Optional.empty();
+        return catalogRepository.findAll()
+                .stream()
+                .filter(book -> book.getAuthor().startsWith(author))
+                .filter(book -> book.getTitle().startsWith(title))
+                .findFirst();
     }
 
     @Override
@@ -54,7 +59,16 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public void updateBook(){
+    public UpdateBookResponse updateBook(UpdateBookCommand command) {
+        return catalogRepository.findById(command.getId())
+        .map(book -> {
+            book.setTitle(command.getTitle());
+            book.setAuthor(command.getAuthor());
+            book.setYear(command.getYear());
+            catalogRepository.save(book);
+            return UpdateBookResponse.SUCCESS;
+        })
+        .orElseGet(() -> new UpdateBookResponse(false, Collections.singletonList("Book not found. Id: " + command.getId())));
 
     }
 

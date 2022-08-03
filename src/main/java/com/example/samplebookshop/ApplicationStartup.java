@@ -2,6 +2,7 @@ package com.example.samplebookshop;
 
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.CreateBookCommand;
+import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookCommand;
 import com.example.samplebookshop.catalog.domain.Book;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,23 @@ public class ApplicationStartup implements CommandLineRunner {
         initializeData();
         findByTitle();
         findByAuthor();
+        findAndUpdate();
+        findByTitle();
+        findByAuthor();
+    }
+
+    private void findAndUpdate() {
+        System.out.println("Updating...");
+        catalog.findOneByTitleAndAuthor(title, author).
+                ifPresent(book -> {
+                    UpdateBookCommand command = new UpdateBookCommand(
+                            book.getId(),
+                            "Pan Tadeusz - Updated",
+                            book.getAuthor(),
+                            book.getYear()
+                    );
+                    catalog.updateBook(command);
+                });
     }
 
     private void initializeData() {
