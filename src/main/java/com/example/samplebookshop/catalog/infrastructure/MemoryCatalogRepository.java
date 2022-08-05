@@ -44,6 +44,6 @@ public class MemoryCatalogRepository implements CatalogRepository {
     }
 
     private long nextId() {
-        return ID_NEXT_VALUE.getAndIncrement();
+        return ID_NEXT_VALUE.incrementAndGet();
     }
 }
