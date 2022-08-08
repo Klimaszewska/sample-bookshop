@@ -28,7 +28,7 @@ public interface PlaceOrderUseCase {
         Long orderId;
         List<String> errors;
 
-        static PlaceOrderResponse success(Long orderId) {
+        public static PlaceOrderResponse success(Long orderId) {
             return new PlaceOrderResponse(true, orderId, emptyList());
         }
 

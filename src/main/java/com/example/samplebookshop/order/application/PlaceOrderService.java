@@ -1,5 +1,6 @@
-package com.example.samplebookshop.order.application.port;
+package com.example.samplebookshop.order.application;
 
+import com.example.samplebookshop.order.application.port.PlaceOrderUseCase;
 import com.example.samplebookshop.order.domain.Order;
 import com.example.samplebookshop.order.domain.OrderRepository;
 import lombok.RequiredArgsConstructor;
