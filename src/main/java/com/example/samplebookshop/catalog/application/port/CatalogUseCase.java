@@ -17,11 +17,15 @@ public interface CatalogUseCase {
 
     List<Book> findByAuthor(String author);
 
+    Optional<Book> findOneById(Long id);
+
     Optional<Book> findOneByTitle(String title);
 
     Optional<Book> findOneByTitleAndAuthor(String title, String author);
 
-    void addBook(CreateBookCommand command);
+    List<Book> findByTitleAndAuthor(String title, String author);
+
+    Book addBook(CreateBookCommand command);
 
     void removeById(Long Id);
 

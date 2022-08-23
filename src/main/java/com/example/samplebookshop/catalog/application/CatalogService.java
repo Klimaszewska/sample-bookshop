@@ -26,7 +26,7 @@ class CatalogService implements CatalogUseCase {
     public List<Book> findByTitle(String title) {
         return catalogRepository.findAll()
                 .stream()
-                .filter(book -> book.getTitle().startsWith(title))
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
@@ -34,31 +34,45 @@ class CatalogService implements CatalogUseCase {
     public List<Book> findByAuthor(String author) {
         return catalogRepository.findAll()
                 .stream()
-                .filter(book -> book.getAuthor().startsWith(author))
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Book> findOneById(Long id) {
+        return catalogRepository.findById(id);
     }
 
     @Override
     public Optional<Book> findOneByTitle(String title) {
         return catalogRepository.findAll()
                 .stream()
-                .filter(book -> book.getTitle().startsWith(title))
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
                 .findFirst();
+    }
+
+    @Override
+    public List<Book> findByTitleAndAuthor(String title, String author) {
+        return catalogRepository.findAll()
+                .stream()
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Book> findOneByTitleAndAuthor(String title, String author) {
         return catalogRepository.findAll()
                 .stream()
-                .filter(book -> book.getAuthor().startsWith(author))
-                .filter(book -> book.getTitle().startsWith(title))
+                .filter(book -> book.getAuthor().contains(author))
+                .filter(book -> book.getTitle().contains(title))
                 .findFirst();
     }
 
     @Override
-    public void addBook(CreateBookCommand command) {
+    public Book addBook(CreateBookCommand command) {
         Book book = command.toBook();
-        this.catalogRepository.save(book);
+        return this.catalogRepository.save(book);
     }
 
     @Override
