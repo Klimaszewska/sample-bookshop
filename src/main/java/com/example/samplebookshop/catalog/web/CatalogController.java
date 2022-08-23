@@ -59,7 +59,7 @@ public class CatalogController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long id){
+    public void deleteById(@PathVariable Long id) {
         catalog.removeById(id);
     }
 
@@ -70,17 +70,17 @@ public class CatalogController {
 
     @Data
     private static class RestCreateBookCommand {
-        @NotBlank
+        @NotBlank(message = "Please enter a title")
         private String title;
 
-        @NotBlank
+        @NotBlank(message = "Please enter an author")
         private String author;
 
-        @NotNull
+        @NotNull(message = "Please enter the year")
         private Integer year;
 
-        @NotNull
-        @DecimalMin("0.00")
+        @NotNull(message = "Please enter the price")
+        @DecimalMin(value = "0.00", message = "Price cannot be negative")
         private BigDecimal price;
 
         CreateBookCommand toCommand() {
