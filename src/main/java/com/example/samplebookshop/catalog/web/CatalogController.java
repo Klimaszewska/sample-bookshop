@@ -2,12 +2,14 @@ package com.example.samplebookshop.catalog.web;
 
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.CreateBookCommand;
+import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookCommand;
 import com.example.samplebookshop.catalog.domain.Book;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
@@ -51,8 +53,8 @@ public class CatalogController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> addBook(@Valid @RequestBody RestCreateBookCommand command) {
-        Book book = this.catalog.addBook(command.toCommand());
+    public ResponseEntity<?> addBook(@Valid @RequestBody CatalogController.RestBookCommand command) {
+        Book book = this.catalog.addBook(command.toCreateCommand());
         URI uri = createBookUri(book);
         return ResponseEntity.created(uri).build();
     }
@@ -63,13 +65,23 @@ public class CatalogController {
         catalog.removeById(id);
     }
 
+    @PutMapping("{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateBook(@PathVariable Long id, @RequestBody RestBookCommand command) {
+        CatalogUseCase.UpdateBookResponse response = catalog.updateBook(command.toUpdateBookCommand(id));
+        if (!response.isSuccess()) {
+            String errorMessage = String.join(", ", response.getErrors());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+        }
+    }
+
     private URI createBookUri(Book book) {
         return ServletUriComponentsBuilder.fromCurrentRequestUri().path("/" + book.getId().toString()).build().toUri();
     }
 
 
     @Data
-    private static class RestCreateBookCommand {
+    private static class RestBookCommand {
         @NotBlank(message = "Please enter a title")
         private String title;
 
@@ -83,8 +95,12 @@ public class CatalogController {
         @DecimalMin(value = "0.00", message = "Price cannot be negative")
         private BigDecimal price;
 
-        CreateBookCommand toCommand() {
+        CreateBookCommand toCreateCommand() {
             return new CreateBookCommand(title, author, year, price);
+        }
+
+        UpdateBookCommand toUpdateBookCommand(Long id) {
+            return new UpdateBookCommand(id, title, author, year, price);
         }
     }
 

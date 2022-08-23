@@ -1,6 +1,7 @@
 package com.example.samplebookshop.catalog.application.port;
 
 import com.example.samplebookshop.catalog.domain.Book;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
@@ -38,18 +39,20 @@ public interface CatalogUseCase {
         Integer year;
         BigDecimal price;
 
-        public Book toBook(){
+        public Book toBook() {
             return new Book(title, author, year, price);
         }
     }
 
     @Value
     @Builder
+    @AllArgsConstructor
     class UpdateBookCommand {
         Long id;
         String title;
         String author;
         Integer year;
+        BigDecimal price;
 
         public Book updateFields(Book book) {
             if (title != null) {
@@ -60,6 +63,9 @@ public interface CatalogUseCase {
             }
             if (year != null) {
                 book.setYear(year);
+            }
+            if (price != null) {
+                book.setPrice(price);
             }
             return book;
         }
