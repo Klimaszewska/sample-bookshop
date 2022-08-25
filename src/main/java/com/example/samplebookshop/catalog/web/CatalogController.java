@@ -68,7 +68,7 @@ public class CatalogController {
         catalog.removeById(id);
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateBook(@PathVariable Long id, @RequestBody RestBookCommand command) {
         CatalogUseCase.UpdateBookResponse response = catalog.updateBook(command.toUpdateBookCommand(id));
@@ -78,7 +78,7 @@ public class CatalogController {
         }
     }
 
-    @PutMapping("{id}/cover")
+    @PutMapping("/{id}/cover")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void addBookCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
         System.out.println("Got file: " + file.getOriginalFilename());
@@ -88,6 +88,12 @@ public class CatalogController {
                 file.getContentType(),
                 file.getOriginalFilename()
         ));
+    }
+
+    @DeleteMapping("/{id}/cover")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeBookCover(@PathVariable Long id){
+        catalog.removeBookCover(id);
     }
 
     private URI createBookUri(Book book) {

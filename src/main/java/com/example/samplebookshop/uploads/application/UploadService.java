@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,6 +27,17 @@ public class UploadService implements UploadUseCase {
         storage.put(upload.getId(), upload);
         System.out.println("Upload saved: " + upload.getFilename() + " With id: " + id);
         return upload;
+    }
+
+    @Override
+    public Optional<Upload> getById(Long id) {
+        Upload upload = storage.get(id);
+        return Optional.ofNullable(upload);
+    }
+
+    @Override
+    public void removeById(Long id) {
+        storage.remove(id);
     }
 
 }
