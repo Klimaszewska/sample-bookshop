@@ -3,6 +3,9 @@ package com.example.samplebookshop.catalog.application;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.catalog.domain.CatalogRepository;
+import com.example.samplebookshop.uploads.application.port.UploadUseCase;
+import com.example.samplebookshop.uploads.application.port.UploadUseCase.SaveUploadCommand;
+import com.example.samplebookshop.uploads.domain.Upload;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +18,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 class CatalogService implements CatalogUseCase {
 
-    private CatalogRepository catalogRepository;
+    private final CatalogRepository catalogRepository;
+    private final UploadUseCase upload;
 
     @Override
     public List<Book> findAll() {
@@ -91,6 +95,16 @@ class CatalogService implements CatalogUseCase {
                 })
                 .orElseGet(() -> new UpdateBookResponse(false, Collections.singletonList("Book not found. Id: " + command.getId())));
 
+    }
+
+    @Override
+    public void updateBookCover(UpdateBookCoverCommand command) {
+        catalogRepository.findById(command.getId())
+                .ifPresent(book -> {
+                    Upload savedUpload = upload.save(new SaveUploadCommand(command.getFilename(), command.getFile(), command.getContentType()));
+                    book.setCoverId(savedUpload.getId());
+                    catalogRepository.save(book);
+                });
     }
 
 }
