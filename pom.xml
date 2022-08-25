@@ -17,6 +17,7 @@
         <java.version>17</java.version>
         <lombok.version>1.18.24</lombok.version>
         <hibernate.validator.version>6.1.5.Final</hibernate.validator.version>
+        <springdoc.version>1.4.6</springdoc.version>
     </properties>
     <dependencies>
         <dependency>
@@ -34,6 +35,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.6.11</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
