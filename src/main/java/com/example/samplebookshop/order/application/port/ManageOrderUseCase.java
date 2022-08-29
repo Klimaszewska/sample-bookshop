@@ -1,6 +1,7 @@
 package com.example.samplebookshop.order.application.port;
 
 import com.example.samplebookshop.order.domain.OrderItem;
+import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
 import lombok.Builder;
 import lombok.Singular;
@@ -11,8 +12,12 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 
-public interface PlaceOrderUseCase {
+public interface ManageOrderUseCase {
     PlaceOrderResponse placeOrder(PlaceOrderCommand command);
+
+    void deleteOrder(Long id);
+
+    void updateOrderStatus(Long id, OrderStatus orderStatus);
 
     @Builder
     @Value

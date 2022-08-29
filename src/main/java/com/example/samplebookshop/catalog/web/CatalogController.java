@@ -4,7 +4,9 @@ import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.CreateBookCommand;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookCommand;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookCoverCommand;
+import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookResponse;
 import com.example.samplebookshop.catalog.domain.Book;
+import com.example.samplebookshop.web.CustomUri;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
@@ -13,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
@@ -57,10 +58,14 @@ public class CatalogController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> addBook(@Valid @RequestBody CatalogController.RestBookCommand command) {
+    public ResponseEntity<?> addBook(@Valid @RequestBody RestBookCommand command) {
         Book book = this.catalog.addBook(command.toCreateCommand());
         URI uri = createBookUri(book);
         return ResponseEntity.created(uri).build();
+    }
+
+    private URI createBookUri(Book book) {
+        return new CustomUri("/" + book.getId().toString()).toUri();
     }
 
     @DeleteMapping("/{id}")
@@ -72,7 +77,7 @@ public class CatalogController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateBook(@PathVariable Long id, @RequestBody RestBookCommand command) {
-        CatalogUseCase.UpdateBookResponse response = catalog.updateBook(command.toUpdateBookCommand(id));
+        UpdateBookResponse response = catalog.updateBook(command.toUpdateBookCommand(id));
         if (!response.isSuccess()) {
             String errorMessage = String.join(", ", response.getErrors());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
@@ -96,11 +101,6 @@ public class CatalogController {
     public void removeBookCover(@PathVariable Long id){
         catalog.removeBookCover(id);
     }
-
-    private URI createBookUri(Book book) {
-        return ServletUriComponentsBuilder.fromCurrentRequestUri().path("/" + book.getId().toString()).build().toUri();
-    }
-
 
     @Data
     private static class RestBookCommand {

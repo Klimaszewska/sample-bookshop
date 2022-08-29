@@ -5,9 +5,9 @@ import com.example.samplebookshop.catalog.application.port.CatalogUseCase.Create
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookCommand;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.UpdateBookResponse;
 import com.example.samplebookshop.catalog.domain.Book;
-import com.example.samplebookshop.order.application.port.PlaceOrderUseCase;
-import com.example.samplebookshop.order.application.port.PlaceOrderUseCase.PlaceOrderCommand;
-import com.example.samplebookshop.order.application.port.PlaceOrderUseCase.PlaceOrderResponse;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.Recipient;
@@ -22,7 +22,7 @@ import java.util.List;
 public class ApplicationStartup implements CommandLineRunner {
 
     private final CatalogUseCase catalog;
-    private final PlaceOrderUseCase placeOrder;
+    private final ManageOrderUseCase manageOrder;
     private final QueryOrderUseCase queryOrder;
 
     @Value("${bookshop.catalog.query.title}")
@@ -32,9 +32,9 @@ public class ApplicationStartup implements CommandLineRunner {
     @Value("${bookshop.catalog.limit}")
     Long limit;
 
-    public ApplicationStartup(CatalogUseCase catalog, PlaceOrderUseCase placeOrder, QueryOrderUseCase queryOrder) {
+    public ApplicationStartup(CatalogUseCase catalog, ManageOrderUseCase manageOrder, QueryOrderUseCase queryOrder) {
         this.catalog = catalog;
-        this.placeOrder = placeOrder;
+        this.manageOrder = manageOrder;
         this.queryOrder = queryOrder;
     }
 
@@ -70,7 +70,7 @@ public class ApplicationStartup implements CommandLineRunner {
                 .item(new OrderItem(book2, 7))
                 .build();
 
-        PlaceOrderResponse placeOrderResponse = placeOrder.placeOrder(placeOrderCommand);
+        PlaceOrderResponse placeOrderResponse = manageOrder.placeOrder(placeOrderCommand);
         System.out.println("Created order with id: " + placeOrderResponse.getOrderId());
 
         // list all orders
