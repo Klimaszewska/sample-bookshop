@@ -1,0 +1,40 @@
+###
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "bookId": 1,
+      "quantity": 3
+    },
+    {
+      "bookId": 2,
+      "quantity": 3
+    }
+  ],
+  "recipient": {
+    "name": "Jan Kowalski",
+    "phone": "503710835",
+    "street": "Sample Street 1",
+    "city": "Sample City",
+    "zipCode": "00-000",
+    "email": "sample@sample.com"
+  }
+}
+
+###
+GET http://localhost:8080/orders
+
+###
+GET http://localhost:8080/orders/1
+
+###
+PUT http://localhost:8080/orders/1/status
+Content-Type: application/json
+
+{
+  "orderStatus": "DELIVERED"
+}
+
+###

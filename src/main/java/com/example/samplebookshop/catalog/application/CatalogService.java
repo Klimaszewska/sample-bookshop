@@ -1,8 +1,8 @@
 package com.example.samplebookshop.catalog.application;
 
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
+import com.example.samplebookshop.catalog.db.BookJpaRepository;
 import com.example.samplebookshop.catalog.domain.Book;
-import com.example.samplebookshop.catalog.domain.CatalogRepository;
 import com.example.samplebookshop.uploads.application.port.UploadUseCase;
 import com.example.samplebookshop.uploads.application.port.UploadUseCase.SaveUploadCommand;
 import com.example.samplebookshop.uploads.domain.Upload;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 class CatalogService implements CatalogUseCase {
 
-    private final CatalogRepository catalogRepository;
+    private final BookJpaRepository catalogRepository;
     private final UploadUseCase upload;
 
     @Override
@@ -81,7 +81,7 @@ class CatalogService implements CatalogUseCase {
 
     @Override
     public void removeById(Long id) {
-        this.catalogRepository.removeById(id);
+        this.catalogRepository.deleteById(id);
 
     }
 

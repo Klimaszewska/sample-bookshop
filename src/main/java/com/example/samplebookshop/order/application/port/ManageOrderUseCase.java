@@ -3,6 +3,7 @@ package com.example.samplebookshop.order.application.port;
 import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -21,6 +22,7 @@ public interface ManageOrderUseCase {
 
     @Builder
     @Value
+    @AllArgsConstructor
     class PlaceOrderCommand {
         @Singular
         List<OrderItem> items;

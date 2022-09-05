@@ -66,8 +66,8 @@ public class ApplicationStartup implements CommandLineRunner {
         PlaceOrderCommand placeOrderCommand = PlaceOrderCommand
                 .builder()
                 .recipient(recipient)
-                .item(new OrderItem(book1, 16))
-                .item(new OrderItem(book2, 7))
+                .item(new OrderItem(book1.getId(), 16))
+                .item(new OrderItem(book2.getId(), 7))
                 .build();
 
         PlaceOrderResponse placeOrderResponse = manageOrder.placeOrder(placeOrderCommand);

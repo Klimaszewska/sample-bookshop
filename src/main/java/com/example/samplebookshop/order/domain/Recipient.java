@@ -1,15 +1,22 @@
 package com.example.samplebookshop.order.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+import javax.persistence.Embeddable;
+
+@Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Embeddable
 public class Recipient {
-    String name;
-    String phone;
-    String street;
-    String city;
-    String zipCode;
-    String email;
+    private String name;
+    private String phone;
+    private String street;
+    private String city;
+    private String zipCode;
+    private String email;
 }

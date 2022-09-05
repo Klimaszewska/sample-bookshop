@@ -4,7 +4,7 @@ import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
-import com.example.samplebookshop.order.domain.Order;
+import com.example.samplebookshop.order.application.port.QueryOrderUseCase.RichOrder;
 import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
@@ -30,12 +30,12 @@ public class OrderController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Order> findAll() {
+    public List<RichOrder> findAll() {
         return queryOrder.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findOneById(@PathVariable Long id) {
+    public ResponseEntity<RichOrder> findOneById(@PathVariable Long id) {
         return queryOrder.findOneById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -43,7 +43,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> placeOrder(@RequestBody RestPlaceOrderCommand command) {
+    public ResponseEntity<Object> placeOrder(@RequestBody RestPlaceOrderCommand command) {
         PlaceOrderResponse placeOrderResponse = this.manageOrder.placeOrder(command.toCommand());
         URI uri = createOrderUri(placeOrderResponse.getOrderId());
         return ResponseEntity.created(uri).build();
