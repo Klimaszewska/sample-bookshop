@@ -19,12 +19,14 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RequestMapping("/catalog")
 @RestController
@@ -104,11 +106,11 @@ public class CatalogController {
 
     @Data
     private static class RestBookCommand {
-        @NotBlank(message = "Please enter a title")
+        @NotBlank(message = "Please enter the title")
         private String title;
 
-        @NotBlank(message = "Please enter an author")
-        private String author;
+        @NotEmpty(message = "Please enter the authors")
+        private Set<Long> authorIds;
 
         @NotNull(message = "Please enter the year")
         private Integer year;
@@ -118,11 +120,11 @@ public class CatalogController {
         private BigDecimal price;
 
         CreateBookCommand toCreateCommand() {
-            return new CreateBookCommand(title, author, year, price);
+            return new CreateBookCommand(title, authorIds, year, price);
         }
 
         UpdateBookCommand toUpdateBookCommand(Long id) {
-            return new UpdateBookCommand(id, title, author, year, price);
+            return new UpdateBookCommand(id, title, authorIds, year, price);
         }
     }
 

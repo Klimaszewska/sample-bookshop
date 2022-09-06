@@ -1,7 +1,9 @@
 package com.example.samplebookshop.catalog.application;
 
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
+import com.example.samplebookshop.catalog.db.AuthorJpaRepository;
 import com.example.samplebookshop.catalog.db.BookJpaRepository;
+import com.example.samplebookshop.catalog.domain.Author;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.uploads.application.port.UploadUseCase;
 import com.example.samplebookshop.uploads.application.port.UploadUseCase.SaveUploadCommand;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,7 +22,8 @@ import java.util.stream.Collectors;
 class CatalogService implements CatalogUseCase {
 
     private final BookJpaRepository catalogRepository;
-    private final UploadUseCase upload;
+    private final AuthorJpaRepository authorRepository;
+    private final UploadUseCase uploadUseCase;
 
     @Override
     public List<Book> findAll() {
@@ -28,18 +32,12 @@ class CatalogService implements CatalogUseCase {
 
     @Override
     public List<Book> findByTitle(String title) {
-        return catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .collect(Collectors.toList());
+        return catalogRepository.findByTitleStartsWithIgnoreCase(title);
     }
 
     @Override
     public List<Book> findByAuthor(String author) {
-        return catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
-                .collect(Collectors.toList());
+        return catalogRepository.findByAuthor(author);
     }
 
     @Override
@@ -49,33 +47,17 @@ class CatalogService implements CatalogUseCase {
 
     @Override
     public Optional<Book> findOneByTitle(String title) {
-        return catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .findFirst();
+        return catalogRepository.findDistinctFirstByTitleStartsWithIgnoreCase(title);
     }
 
     @Override
     public List<Book> findByTitleAndAuthor(String title, String author) {
-        return catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
-                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public Optional<Book> findOneByTitleAndAuthor(String title, String author) {
-        return catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getAuthor().contains(author))
-                .filter(book -> book.getTitle().contains(title))
-                .findFirst();
+        return catalogRepository.findByTitleAndAuthor(title, author);
     }
 
     @Override
     public Book addBook(CreateBookCommand command) {
-        Book book = command.toBook();
+        Book book = toBook(command);
         return this.catalogRepository.save(book);
     }
 
@@ -89,7 +71,7 @@ class CatalogService implements CatalogUseCase {
     public UpdateBookResponse updateBook(UpdateBookCommand command) {
         return catalogRepository.findById(command.getId())
                 .map(book -> {
-                    Book updatedBook = command.updateFields(book);
+                    Book updatedBook = updateFields(command, book);
                     catalogRepository.save(updatedBook);
                     return UpdateBookResponse.SUCCESS;
                 })
@@ -101,7 +83,7 @@ class CatalogService implements CatalogUseCase {
     public void updateBookCover(UpdateBookCoverCommand command) {
         catalogRepository.findById(command.getId())
                 .ifPresent(book -> {
-                    Upload savedUpload = upload.save(new SaveUploadCommand(command.getFilename(), command.getFile(), command.getContentType()));
+                    Upload savedUpload = uploadUseCase.save(new SaveUploadCommand(command.getFilename(), command.getFile(), command.getContentType()));
                     book.setCoverId(savedUpload.getId());
                     catalogRepository.save(book);
                 });
@@ -112,11 +94,44 @@ class CatalogService implements CatalogUseCase {
         catalogRepository.findById(id)
                 .ifPresent(book -> {
                     if (book.getCoverId() != null) {
-                        upload.removeById(book.getCoverId());
+                        uploadUseCase.removeById(book.getCoverId());
                         book.setCoverId(null);
                         catalogRepository.save(book);
                     }
                 });
+    }
+
+    private Book toBook(CreateBookCommand command) {
+        Book book = new Book(command.getTitle(), command.getYear(), command.getPrice());
+        Set<Author> authors = getAuthorsByIds(command.getAuthorIds());
+        book.setAuthors(authors);
+        return book;
+    }
+
+    private Set<Author> getAuthorsByIds(Set<Long> authorIds) {
+        return authorIds.stream()
+                .map(authorId -> authorRepository
+                        .findById(authorId)
+                        .orElseThrow(() -> new IllegalArgumentException("Unable to find author with id: " + authorId))
+                )
+                .collect(Collectors.toSet());
+    }
+
+    private Book updateFields(UpdateBookCommand command, Book book) {
+        if (command.getTitle() != null) {
+            book.setTitle(command.getTitle());
+        }
+        if (command.getAuthorIds() != null && command.getAuthorIds().size() > 0) {
+            Set<Author> authors = getAuthorsByIds(command.getAuthorIds());
+            book.setAuthors(authors);
+        }
+        if (command.getYear() != null) {
+            book.setYear(command.getYear());
+        }
+        if (command.getPrice() != null) {
+            book.setPrice(command.getPrice());
+        }
+        return book;
     }
 
 }

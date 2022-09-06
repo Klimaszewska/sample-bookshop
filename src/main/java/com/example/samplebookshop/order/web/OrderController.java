@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/orders")
 @RestController
@@ -72,15 +73,33 @@ public class OrderController {
     private static class RestPlaceOrderCommand {
         @Singular
         List<OrderItem> items;
-        Recipient recipient;
+        RecipientCommand recipient;
 
         private PlaceOrderCommand toCommand() {
-            return PlaceOrderCommand.builder().items(items).recipient(recipient).build();
+            List<OrderItem> orderItems = items
+                    .stream()
+                    .map(item -> new OrderItem(item.getBookId(), item.getQuantity()))
+                    .collect(Collectors.toList());
+            return new PlaceOrderCommand(orderItems, recipient.toRecipient());
         }
     }
 
     @Data
     private static class RestUpdateOrderStatusCommand {
         String orderStatus;
+    }
+
+    @Data
+    private static class RecipientCommand {
+        private String name;
+        private String phone;
+        private String street;
+        private String city;
+        private String zipCode;
+        private String email;
+
+        Recipient toRecipient() {
+            return new Recipient(name, phone, street, city, zipCode, email);
+        }
     }
 }
