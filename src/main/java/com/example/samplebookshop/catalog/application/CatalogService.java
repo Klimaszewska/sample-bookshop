@@ -28,7 +28,7 @@ class CatalogService implements CatalogUseCase {
 
     @Override
     public List<Book> findAll() {
-        return catalogRepository.findAll();
+        return catalogRepository.findAllBooksWithAuthors();
     }
 
     @Override

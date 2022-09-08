@@ -12,6 +12,10 @@ public interface BookJpaRepository extends JpaRepository<Book, Long> {
     //query example for a ManyToMany relation
     List<Book> findByAuthors_firstNameContainsIgnoreCaseOrAuthors_lastNameContainsIgnoreCase(@Param("firstName") String firstName, @Param("lastName") String lastName);
 
+    //query example for eager loading
+    @Query("SELECT b FROM Book b JOIN FETCH b.authors")
+    List<Book> findAllBooksWithAuthors();
+
     //simple query example
     List<Book> findByTitleStartsWithIgnoreCase(@Param("title") String title);
 
