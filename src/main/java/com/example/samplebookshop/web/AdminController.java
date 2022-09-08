@@ -1,4 +1,4 @@
-package com.example.samplebookshop;
+package com.example.samplebookshop.web;
 
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase.CreateBookCommand;
@@ -12,15 +12,17 @@ import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.Recipient;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.util.Set;
 
-@Component
+@RestController
+@RequestMapping("/admin")
 @AllArgsConstructor
-public class ApplicationStartup implements CommandLineRunner {
+public class AdminController {
 
     private final CatalogUseCase catalog;
     private final ManageOrderUseCase manageOrder;
@@ -28,7 +30,7 @@ public class ApplicationStartup implements CommandLineRunner {
     private final AuthorJpaRepository authorRepository;
 
 
-    @Override
+    @PostMapping("/data")
     public void run(String... args) {
         initializeData();
         placeOrder();
@@ -39,7 +41,6 @@ public class ApplicationStartup implements CommandLineRunner {
         Book effectiveJava = catalog.findOneByTitle("Effective Java").orElseThrow(() -> new IllegalStateException("Cannot find a given book"));
         // find Chlopi
         Book puzzlers = catalog.findOneByTitle("Java Puzzlers").orElseThrow(() -> new IllegalStateException("Cannot find a given book"));
-
         // create Recipient
         Recipient recipient = Recipient
                 .builder()

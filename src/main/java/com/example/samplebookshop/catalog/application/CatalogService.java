@@ -11,6 +11,7 @@ import com.example.samplebookshop.uploads.domain.Upload;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +57,7 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
+    @Transactional
     public Book addBook(CreateBookCommand command) {
         Book book = toBook(command);
         return this.catalogRepository.save(book);
@@ -71,8 +73,7 @@ class CatalogService implements CatalogUseCase {
     public UpdateBookResponse updateBook(UpdateBookCommand command) {
         return catalogRepository.findById(command.getId())
                 .map(book -> {
-                    Book updatedBook = updateFields(command, book);
-                    catalogRepository.save(updatedBook);
+                    updateFields(command, book);
                     return UpdateBookResponse.SUCCESS;
                 })
                 .orElseGet(() -> new UpdateBookResponse(false, Collections.singletonList("Book not found. Id: " + command.getId())));
