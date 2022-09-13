@@ -103,7 +103,7 @@ class CatalogService implements CatalogUseCase {
     }
 
     private Book toBook(CreateBookCommand command) {
-        Book book = new Book(command.getTitle(), command.getYear(), command.getPrice());
+        Book book = new Book(command.getTitle(), command.getYear(), command.getPrice(), command.getAvailableBooks());
         Set<Author> authors = getAuthorsByIds(command.getAuthorIds());
         setAuthors(book, authors);
         return book;

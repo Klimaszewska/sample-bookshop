@@ -17,10 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -119,8 +116,12 @@ public class CatalogController {
         @DecimalMin(value = "0.00", message = "Price cannot be negative")
         private BigDecimal price;
 
+        @NotNull
+        @PositiveOrZero
+        private Long availableBooks;
+
         CreateBookCommand toCreateCommand() {
-            return new CreateBookCommand(title, authorIds, year, price);
+            return new CreateBookCommand(title, authorIds, year, price, availableBooks);
         }
 
         UpdateBookCommand toUpdateBookCommand(Long id) {

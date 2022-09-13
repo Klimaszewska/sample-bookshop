@@ -1,6 +1,5 @@
 package com.example.samplebookshop.order.application.port;
 
-import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
 import lombok.AllArgsConstructor;
@@ -25,8 +24,16 @@ public interface ManageOrderUseCase {
     @AllArgsConstructor
     class PlaceOrderCommand {
         @Singular
-        List<OrderItem> items;
+        List<OrderItemCommand> items;
         Recipient recipient;
+    }
+
+    @Value
+    static class OrderItemCommand {
+        Long bookId;
+        int quantity;
+
+
     }
 
     @Value

@@ -6,10 +6,10 @@ import com.example.samplebookshop.catalog.db.AuthorJpaRepository;
 import com.example.samplebookshop.catalog.domain.Author;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase.OrderItemCommand;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
-import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.Recipient;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,8 +56,8 @@ public class AdminController {
         PlaceOrderCommand placeOrderCommand = PlaceOrderCommand
                 .builder()
                 .recipient(recipient)
-                .item(new OrderItem(effectiveJava.getId(), 16))
-                .item(new OrderItem(puzzlers.getId(), 7))
+                .item(new OrderItemCommand(effectiveJava.getId(), 16))
+                .item(new OrderItemCommand(puzzlers.getId(), 7))
                 .build();
 
         PlaceOrderResponse placeOrderResponse = manageOrder.placeOrder(placeOrderCommand);
@@ -75,8 +75,8 @@ public class AdminController {
         authorRepository.save(joshua);
         authorRepository.save(neal);
 
-        CreateBookCommand effectiveJava = new CreateBookCommand("Effective Java", Set.of(joshua.getId()), 2005, new BigDecimal("50.00"));
-        CreateBookCommand javaPuzzlers = new CreateBookCommand("Java Puzzlers", Set.of(joshua.getId(), neal.getId()), 2018, new BigDecimal("20.00"));
+        CreateBookCommand effectiveJava = new CreateBookCommand("Effective Java", Set.of(joshua.getId()), 2005, new BigDecimal("50.00"), 50L);
+        CreateBookCommand javaPuzzlers = new CreateBookCommand("Java Puzzlers", Set.of(joshua.getId(), neal.getId()), 2018, new BigDecimal("20.00"), 50L);
         catalog.addBook(effectiveJava);
         catalog.addBook(javaPuzzlers);
 

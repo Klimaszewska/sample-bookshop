@@ -1,11 +1,9 @@
 package com.example.samplebookshop.order.application;
 
 import com.example.samplebookshop.catalog.db.BookJpaRepository;
-import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.db.OrderJpaRepository;
 import com.example.samplebookshop.order.domain.Order;
-import com.example.samplebookshop.order.domain.OrderItem;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,27 +34,14 @@ public class QueryOrderService implements QueryOrderUseCase {
                 .map(this::toRichOrder);
     }
 
-
     private RichOrder toRichOrder(Order order) {
-        List<RichOrderItem> richItems = toRichItems(order.getItems());
         return new RichOrder(
                 order.getId(),
                 order.getOrderStatus(),
-                richItems,
+                order.getItems(),
                 order.getRecipient(),
                 order.getCreatedAt()
         );
-    }
-
-    private List<RichOrderItem> toRichItems(List<OrderItem> items) {
-        return items.stream()
-                .map(item -> {
-                    Book book = catalogRepository
-                            .findById(item.getBookId())
-                            .orElseThrow(() -> new IllegalStateException("Unable to find book with ID: " + item.getBookId()));
-                    return new RichOrderItem(book, item.getQuantity());
-                })
-                .collect(Collectors.toList());
     }
 
 }

@@ -5,13 +5,10 @@ import com.example.samplebookshop.order.application.port.ManageOrderUseCase.Plac
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase.RichOrder;
-import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.OrderStatus;
-import com.example.samplebookshop.order.domain.Recipient;
 import com.example.samplebookshop.web.CustomUri;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Singular;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequestMapping("/orders")
 @RestController
@@ -44,8 +40,8 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Object> placeOrder(@RequestBody RestPlaceOrderCommand command) {
-        PlaceOrderResponse placeOrderResponse = this.manageOrder.placeOrder(command.toCommand());
+    public ResponseEntity<Object> placeOrder(@RequestBody PlaceOrderCommand command) {
+        PlaceOrderResponse placeOrderResponse = this.manageOrder.placeOrder(command);
         URI uri = createOrderUri(placeOrderResponse.getOrderId());
         return ResponseEntity.created(uri).build();
     }
@@ -70,36 +66,7 @@ public class OrderController {
     }
 
     @Data
-    private static class RestPlaceOrderCommand {
-        @Singular
-        List<OrderItem> items;
-        RecipientCommand recipient;
-
-        private PlaceOrderCommand toCommand() {
-            List<OrderItem> orderItems = items
-                    .stream()
-                    .map(item -> new OrderItem(item.getBookId(), item.getQuantity()))
-                    .collect(Collectors.toList());
-            return new PlaceOrderCommand(orderItems, recipient.toRecipient());
-        }
-    }
-
-    @Data
     private static class RestUpdateOrderStatusCommand {
         String orderStatus;
-    }
-
-    @Data
-    private static class RecipientCommand {
-        private String name;
-        private String phone;
-        private String street;
-        private String city;
-        private String zipCode;
-        private String email;
-
-        Recipient toRecipient() {
-            return new Recipient(name, phone, street, city, zipCode, email);
-        }
     }
 }

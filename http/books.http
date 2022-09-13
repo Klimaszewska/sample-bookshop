@@ -1,3 +1,9 @@
+### Initialize Data
+
+POST http://localhost:8080/admin/data
+
+###
+
 GET http://localhost:8080/catalog
 
 ###

@@ -5,12 +5,12 @@ Content-Type: application/json
 {
   "items": [
     {
-      "bookId": 1,
-      "quantity": 3
+      "bookId": 4,
+      "quantity": 30
     },
     {
-      "bookId": 2,
-      "quantity": 3
+      "bookId": 3,
+      "quantity": 30
     }
   ],
   "recipient": {
@@ -27,14 +27,14 @@ Content-Type: application/json
 GET http://localhost:8080/orders
 
 ###
-GET http://localhost:8080/orders/1
+GET http://localhost:8080/orders/9
 
 ###
-PUT http://localhost:8080/orders/1/status
+PUT http://localhost:8080/orders/9/status
 Content-Type: application/json
 
 {
-  "orderStatus": "DELIVERED"
+  "orderStatus": "SHIPPED"
 }
 
 ###
