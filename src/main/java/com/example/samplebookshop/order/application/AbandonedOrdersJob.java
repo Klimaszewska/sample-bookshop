@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,11 +18,13 @@ import java.util.List;
 public class AbandonedOrdersJob {
     private final OrderJpaRepository orderRepository;
     private final ManageOrderUseCase manageOrderUseCase;
+    private final OrderProperties properties;
 
-    @Scheduled(fixedRate = 60_000)
+    @Scheduled(cron = "${app.order.abandon-cron}")
     @Transactional
     public void run(){
-        List<Order> ordersTobeAbandoned = orderRepository.findByOrderStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, LocalDateTime.now().minusDays(5));
+        Duration paymentPeriod = properties.getPaymentPeriod();
+        List<Order> ordersTobeAbandoned = orderRepository.findByOrderStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, LocalDateTime.now().minus(paymentPeriod));
         ordersTobeAbandoned.forEach(order -> {
             manageOrderUseCase.updateOrderStatus(order.getId(), OrderStatus.ABANDONED);
         });
