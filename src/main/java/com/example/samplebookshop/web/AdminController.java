@@ -12,6 +12,7 @@ import com.example.samplebookshop.order.application.port.ManageOrderUseCase.Plac
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.Recipient;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.Set;
 
+@Slf4j
 @RestController
 @RequestMapping("/admin")
 @AllArgsConstructor
@@ -61,11 +63,11 @@ public class AdminController {
                 .build();
 
         PlaceOrderResponse placeOrderResponse = manageOrder.placeOrder(placeOrderCommand);
-        System.out.println("Created order with id: " + placeOrderResponse.getOrderId());
+        log.info("Created order with id: " + placeOrderResponse.getOrderId());
 
         // list all orders
         queryOrder.findAll()
-                .forEach(order -> System.out.println("Received order with total price: " + order.totalPrice() + " Details: " + order)
+                .forEach(order -> log.info("Received order with total price: " + order.totalPrice() + " Details: " + order)
                 );
     }
 
