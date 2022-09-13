@@ -4,9 +4,8 @@ import com.example.samplebookshop.catalog.db.BookJpaRepository;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.db.OrderJpaRepository;
-import com.example.samplebookshop.order.domain.Order;
-import com.example.samplebookshop.order.domain.OrderItem;
-import com.example.samplebookshop.order.domain.OrderStatus;
+import com.example.samplebookshop.order.db.RecipientJpaRepository;
+import com.example.samplebookshop.order.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +20,7 @@ public class ManageOrderService implements ManageOrderUseCase {
 
     private final OrderJpaRepository orderJpaRepository;
     private final BookJpaRepository bookJpaRepository;
+    private final RecipientJpaRepository recipientJpaRepository;
 
     @Override
     public PlaceOrderResponse placeOrder(PlaceOrderCommand command) {
@@ -31,16 +31,22 @@ public class ManageOrderService implements ManageOrderUseCase {
 
         Order order = Order
                 .builder()
-                .recipient(command.getRecipient())
+                .recipient(obtainRecipient(command.getRecipient()))
                 .items(items)
                 .build();
         Order savedOrder = orderJpaRepository.save(order);
-        Set<Book> updatedBooks = updateBooks(items);
+        Set<Book> updatedBooks = decreaseBookQuantity(items);
         bookJpaRepository.saveAll(updatedBooks);
         return PlaceOrderResponse.success(savedOrder.getId());
     }
 
-    private Set<Book> updateBooks(Set<OrderItem> items) {
+    private Recipient obtainRecipient(Recipient commandRecipient) {
+        return recipientJpaRepository
+                .findByEmailIgnoreCase(commandRecipient.getEmail())
+                .orElse(commandRecipient);
+    }
+
+    private Set<Book> decreaseBookQuantity(Set<OrderItem> items) {
         return items.stream().map(item -> {
             Book book = item.getBook();
             Long availableBooks = book.getAvailableBooks();
@@ -70,8 +76,20 @@ public class ManageOrderService implements ManageOrderUseCase {
     public void updateOrderStatus(Long id, OrderStatus orderStatus) {
         orderJpaRepository.findById(id)
                 .ifPresent(order -> {
-                    order.updateStatus(orderStatus);
+                    UpdateStatusResult updateStatusResult = order.updateStatus(orderStatus);
+                    if (updateStatusResult.isRevoked()) {
+                        bookJpaRepository.saveAll(increaseBookQuantity(order.getItems()));
+                    }
                     orderJpaRepository.save(order);
                 });
+    }
+
+    private Set<Book> increaseBookQuantity(Set<OrderItem> items) {
+        return items.stream().map(item -> {
+            Book book = item.getBook();
+            Long availableBooks = book.getAvailableBooks();
+            book.setAvailableBooks(availableBooks + item.getQuantity());
+            return book;
+        }).collect(Collectors.toSet());
     }
 }

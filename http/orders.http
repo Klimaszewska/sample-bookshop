@@ -6,20 +6,20 @@ Content-Type: application/json
   "items": [
     {
       "bookId": 4,
-      "quantity": 30
+      "quantity": 10
     },
     {
       "bookId": 3,
-      "quantity": 30
+      "quantity": 8
     }
   ],
   "recipient": {
-    "name": "Jan Kowalski",
+    "name": "Janina Kowalska",
     "phone": "503710835",
     "street": "Sample Street 1",
     "city": "Sample City",
     "zipCode": "00-000",
-    "email": "sample@sample.com"
+    "email": "sample2@sample2.com"
   }
 }
 
@@ -30,11 +30,11 @@ GET http://localhost:8080/orders
 GET http://localhost:8080/orders/9
 
 ###
-PUT http://localhost:8080/orders/9/status
+PUT http://localhost:8080/orders/22/status
 Content-Type: application/json
 
 {
-  "orderStatus": "SHIPPED"
+  "orderStatus": "CANCELLED"
 }
 
 ###
