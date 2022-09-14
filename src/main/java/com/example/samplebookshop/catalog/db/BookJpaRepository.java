@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface BookJpaRepository extends JpaRepository<Book, Long> {
     //query example for a ManyToMany relation
-    List<Book> findByAuthors_firstNameContainsIgnoreCaseOrAuthors_lastNameContainsIgnoreCase(@Param("firstName") String firstName, @Param("lastName") String lastName);
+//    List<Book> findByAuthors_firstNameContainsIgnoreCaseOrAuthors_lastNameContainsIgnoreCase(@Param("firstName") String firstName, @Param("lastName") String lastName);
 
     //query example for eager loading
     @Query("SELECT DISTINCT b FROM Book b JOIN FETCH b.authors")
@@ -24,8 +24,7 @@ public interface BookJpaRepository extends JpaRepository<Book, Long> {
     //sql query example
     @Query(" SELECT b FROM Book b JOIN b.authors a " +
             " WHERE " +
-            " lower(a.firstName) LIKE lower(concat('%', :name, '%')) " +
-            " OR lower(a.lastName) LIKE lower(concat('%', :name, '%')) "
+            " lower(a.name) LIKE lower(concat('%', :name, '%')) "
     )
     List<Book> findByAuthor(@Param("name") String name);
 
@@ -33,7 +32,7 @@ public interface BookJpaRepository extends JpaRepository<Book, Long> {
             " WHERE " +
             " lower(b.title) LIKE lower(concat('%', :title, '%')) " +
             " AND" +
-            " lower(concat(a.firstName, ' ', a.lastName)) LIKE lower(concat('%', :author, '%'))"
+            " lower(a.name) LIKE lower(concat('%', :author, '%'))"
     )
     List<Book> findByTitleAndAuthor(@Param("title") String title, @Param("author") String author);
 }

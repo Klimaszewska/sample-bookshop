@@ -1,5 +1,6 @@
-package com.example.samplebookshop.catalog.application.port;
+package com.example.samplebookshop.catalog.application;
 
+import com.example.samplebookshop.catalog.application.port.AuthorUseCase;
 import com.example.samplebookshop.catalog.db.AuthorJpaRepository;
 import com.example.samplebookshop.catalog.domain.Author;
 import lombok.AllArgsConstructor;

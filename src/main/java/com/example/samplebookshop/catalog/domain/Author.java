@@ -9,7 +9,10 @@ import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.ManyToMany;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,8 +24,8 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString(exclude = "books")
 public class Author extends BaseEntity {
-    private String firstName;
-    private String lastName;
+
+    private String name;
 
     @ManyToMany(mappedBy = "authors", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnoreProperties("authors")
@@ -31,9 +34,8 @@ public class Author extends BaseEntity {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    public Author(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public Author(String name) {
+        this.name = name;
     }
 
     public void addBook(Book book) {
