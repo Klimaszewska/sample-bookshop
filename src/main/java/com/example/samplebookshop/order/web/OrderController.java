@@ -4,7 +4,7 @@ import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
-import com.example.samplebookshop.order.application.port.QueryOrderUseCase.RichOrder;
+import com.example.samplebookshop.order.application.RichOrder;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.web.CustomUri;
 import lombok.AllArgsConstructor;
