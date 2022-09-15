@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.OrderItemCommand;
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @Import({ManageOrderService.class})
@@ -45,8 +46,26 @@ class ManageOrderServiceTestIT {
         PlaceOrderResponse response = manageOrderService.placeOrder(command);
 
         //then
-        Assertions.assertTrue(response.isSuccess());
+        assertTrue(response.isSuccess());
     }
+
+    @Test
+    void shouldThrowExceptionWhenOrderingMoreBooksThanAvailable() {
+        Book sampleBookOne = givenSampleBookOne(5L);
+        PlaceOrderCommand command = PlaceOrderCommand
+                .builder()
+                .recipient(createRecipient())
+                .item(new OrderItemCommand(sampleBookOne.getId(), 10))
+                .build();
+
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            manageOrderService.placeOrder(command);
+        });
+
+        assertTrue(exception.getMessage().equalsIgnoreCase("Too many copies of book "
+                + sampleBookOne.getId() + " requested: 10 of 5 available"));
+    }
+
 
     private Book givenSampleBookTwo(long available) {
         return bookJpaRepository.save(new Book("Java Concurrency in Practice", 2006, new BigDecimal("99.90"), available));
