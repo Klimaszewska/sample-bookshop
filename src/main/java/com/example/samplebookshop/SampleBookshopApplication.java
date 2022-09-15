@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
-@EnableJpaAuditing
+
 @EnableScheduling
 @EnableConfigurationProperties(OrderProperties.class)
 @SpringBootApplication
