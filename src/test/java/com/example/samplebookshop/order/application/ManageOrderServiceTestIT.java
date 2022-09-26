@@ -1,5 +1,6 @@
 package com.example.samplebookshop.order.application;
 
+import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.db.BookJpaRepository;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
@@ -8,18 +9,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.math.BigDecimal;
 
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.OrderItemCommand;
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DataJpaTest
-@Import({ManageOrderService.class})
+@SpringBootTest
 @AutoConfigureTestDatabase
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class ManageOrderServiceTestIT {
@@ -29,6 +29,9 @@ class ManageOrderServiceTestIT {
 
     @Autowired
     private ManageOrderService manageOrderService;
+
+    @Autowired
+    private CatalogUseCase catalogUseCase;
 
     @Test
     void userCanPlaceOrder() {
@@ -47,6 +50,8 @@ class ManageOrderServiceTestIT {
 
         //then
         assertTrue(response.isSuccess());
+        assertEquals(35L, catalogUseCase.findOneById(sampleBookOne.getId()).get().getAvailableBooks());
+        assertEquals(40L, catalogUseCase.findOneById(sampleBookTwo.getId()).get().getAvailableBooks());
     }
 
     @Test
