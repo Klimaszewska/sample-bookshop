@@ -14,12 +14,12 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.OrderItemCommand;
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -93,6 +93,64 @@ class OrderServiceTestIT {
 
     }
 
+    @Test
+    void userCannotRevokePaidOrder() {
+        // given
+        Long orderId = generateSamplePaidOrder();
+
+        // when
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            manageOrderService.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+        });
+
+        // then
+        assertTrue(exception.getMessage().equalsIgnoreCase("Unable to mark " + OrderStatus.PAID + " order as " + OrderStatus.CANCELLED));
+    }
+
+    @Test
+    void userCannotRevokeShippedOrder() {
+        // given
+        Long orderId = generateSamplePaidOrder();
+        manageOrderService.updateOrderStatus(orderId, OrderStatus.SHIPPED);
+
+        // when
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            manageOrderService.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+        });
+
+        // then
+        assertTrue(exception.getMessage().equalsIgnoreCase("Unable to mark " + OrderStatus.SHIPPED + " order as " + OrderStatus.CANCELLED));
+    }
+
+    @Test
+    void userCannotOrderNonExistingBooks() {
+        //given
+        Long invalidId = -1L;
+
+        //when
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            placeOrder(invalidId, 15);
+        });
+
+        //then
+        Assertions.assertTrue(exception.getMessage().contains("Unable to find"));
+
+    }
+
+    @Test
+    void userCannotOrderNegativeNumberOfBooks() {
+        //given
+        Book sampleBookOne = givenSampleBookOne(50L);
+
+        //when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            placeOrder(sampleBookOne.getId(), -10);
+        });
+
+        //then
+        assertTrue(exception.getMessage().equalsIgnoreCase("Quantity must be more than 0"));
+        assertEquals(50, getAvailableBooks(sampleBookOne));
+    }
 
     private Long placeOrder(Long bookId, int quantity){
         PlaceOrderCommand command = PlaceOrderCommand
@@ -119,6 +177,13 @@ class OrderServiceTestIT {
 
     private Recipient createRecipient() {
         return Recipient.builder().email("john@example.org").build();
+    }
+
+    private Long generateSamplePaidOrder() {
+        Book sampleBookOne = givenSampleBookOne(50L);
+        Long orderId = placeOrder(sampleBookOne.getId(), 15);
+        manageOrderService.updateOrderStatus(orderId, OrderStatus.PAID);
+        return orderId;
     }
 
 }

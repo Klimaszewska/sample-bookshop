@@ -59,11 +59,21 @@ public class ManageOrderService implements ManageOrderUseCase {
         Book book = bookJpaRepository.getById(orderItemCommand.getBookId());
         int quantity = orderItemCommand.getQuantity();
         Long availableBooks = book.getAvailableBooks();
-        if (availableBooks >= quantity) {
-            return new OrderItem(book, quantity);
-        } else {
+        checkIfQuantityIsPositive(quantity);
+        checkIfQuantityDoesNotExceedAvailableBooks(book, quantity, availableBooks);
+        return new OrderItem(book, quantity);
+    }
+
+    private void checkIfQuantityDoesNotExceedAvailableBooks(Book book, int quantity, Long availableBooks) {
+        if (availableBooks < quantity){
             throw new IllegalArgumentException("Too many copies of book " + book.getId() + " requested: "
                     + quantity + " of " + availableBooks + " available");
+        }
+    }
+
+    private void checkIfQuantityIsPositive(int quantity) {
+        if (quantity <= 0){
+            throw new IllegalArgumentException("Quantity must be more than 0");
         }
     }
 
