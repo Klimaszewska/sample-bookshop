@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.*;
+
 @Component
 @AllArgsConstructor
 public class AbandonedOrdersJob {
@@ -26,7 +28,10 @@ public class AbandonedOrdersJob {
         Duration paymentPeriod = properties.getPaymentPeriod();
         List<Order> ordersTobeAbandoned = orderRepository.findByOrderStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, LocalDateTime.now().minus(paymentPeriod));
         ordersTobeAbandoned.forEach(order -> {
-            manageOrderUseCase.updateOrderStatus(order.getId(), OrderStatus.ABANDONED);
+            //TODO: fix the email reference when implementing security features
+            String adminEmail = "admin@example.org";
+            UpdateStatusCommand command = new UpdateStatusCommand(order.getId(), OrderStatus.ABANDONED, adminEmail);
+            manageOrderUseCase.updateOrderStatus(command);
         });
     }
 }

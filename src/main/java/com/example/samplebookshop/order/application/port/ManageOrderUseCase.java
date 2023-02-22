@@ -17,7 +17,7 @@ public interface ManageOrderUseCase {
 
     void deleteOrder(Long id);
 
-    void updateOrderStatus(Long id, OrderStatus orderStatus);
+    UpdateStatusResponse updateOrderStatus(UpdateStatusCommand command);
 
     @Builder
     @Value
@@ -32,8 +32,13 @@ public interface ManageOrderUseCase {
     static class OrderItemCommand {
         Long bookId;
         int quantity;
+    }
 
-
+    @Value
+    class UpdateStatusCommand{
+        Long orderId;
+        OrderStatus status;
+        String email;
     }
 
     @Value
@@ -48,6 +53,21 @@ public interface ManageOrderUseCase {
 
         public static PlaceOrderResponse failure(String... errors) {
             return new PlaceOrderResponse(false, null, Arrays.asList(errors));
+        }
+    }
+
+    @Value
+    class UpdateStatusResponse {
+        boolean success;
+        String status;
+        List<String> errors;
+
+        public static UpdateStatusResponse success(String status) {
+            return new UpdateStatusResponse(true, status, emptyList());
+        }
+
+        public static UpdateStatusResponse failure(String... errors) {
+            return new UpdateStatusResponse(false, null, Arrays.asList(errors));
         }
     }
 }

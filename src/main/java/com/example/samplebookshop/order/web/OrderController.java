@@ -16,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
+
+import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.*;
 
 @RequestMapping("/orders")
 @RestController
@@ -48,11 +51,14 @@ public class OrderController {
 
     @PutMapping("/{id}/status")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateOrderStatus(@PathVariable Long id, @RequestBody RestUpdateOrderStatusCommand command) {
+    public void updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String status = body.get("status");
         OrderStatus orderStatus = OrderStatus
-                .parseString(command.orderStatus)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + command.orderStatus));
-        this.manageOrder.updateOrderStatus(id, orderStatus);
+                .parseString(status)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + status));
+        //TODO: fix the email reference when implementing security features
+        UpdateStatusCommand command = new UpdateStatusCommand(id, orderStatus, "admin@example.org");
+        this.manageOrder.updateOrderStatus(command);
     }
 
     @DeleteMapping("/{id}")
@@ -65,8 +71,4 @@ public class OrderController {
         return new CustomUri("/" + orderId).toUri();
     }
 
-    @Data
-    private static class RestUpdateOrderStatusCommand {
-        String orderStatus;
-    }
 }

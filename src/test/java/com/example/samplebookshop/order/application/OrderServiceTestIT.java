@@ -3,7 +3,10 @@ package com.example.samplebookshop.order.application;
 import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.db.BookJpaRepository;
 import com.example.samplebookshop.catalog.domain.Book;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase.OrderItemCommand;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
+import com.example.samplebookshop.order.application.port.ManageOrderUseCase.UpdateStatusCommand;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
@@ -17,8 +20,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 
-import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.OrderItemCommand;
-import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -81,26 +82,30 @@ class OrderServiceTestIT {
     void userCanRevokeOrder(){
         // given
         Book sampleBookOne = givenSampleBookOne(50L);
-        Long orderId = placeOrder(sampleBookOne.getId(), 15);
+        String recipientEmail = "first.user@example.org";
+        Long orderId = placeOrder(sampleBookOne.getId(), 15, recipientEmail);
         assertEquals(35L, getAvailableBooks(sampleBookOne));
 
         // when
-        manageOrderService.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+        //TODO: fix the email reference when implementing security features
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, recipientEmail);
+        manageOrderService.updateOrderStatus(command);
 
         // then
         assertEquals(OrderStatus.CANCELLED, queryOrderUseCase.findOneById(orderId).get().getStatus());
         assertEquals(50L, getAvailableBooks(sampleBookOne));
-
     }
 
     @Test
     void userCannotRevokePaidOrder() {
         // given
         Long orderId = generateSamplePaidOrder();
+        String recipientEmail = "first.user@example.org";
 
         // when
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, recipientEmail);
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            manageOrderService.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+            manageOrderService.updateOrderStatus(command);
         });
 
         // then
@@ -111,11 +116,14 @@ class OrderServiceTestIT {
     void userCannotRevokeShippedOrder() {
         // given
         Long orderId = generateSamplePaidOrder();
-        manageOrderService.updateOrderStatus(orderId, OrderStatus.SHIPPED);
+        String recipientEmail = "first.user@example.org";
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.SHIPPED, recipientEmail);
+        manageOrderService.updateOrderStatus(command);
 
         // when
+        UpdateStatusCommand cancellingCommand = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, recipientEmail);
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            manageOrderService.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+            manageOrderService.updateOrderStatus(cancellingCommand);
         });
 
         // then
@@ -152,15 +160,36 @@ class OrderServiceTestIT {
         assertEquals(50, getAvailableBooks(sampleBookOne));
     }
 
-    private Long placeOrder(Long bookId, int quantity){
+    @Test
+    void userCannotRevokeOtherUsersOrder() {
+        // given
+        Book sampleBookOne = givenSampleBookOne(50L);
+        String recipientEmail = "first.user@example.org";
+        Long orderId = placeOrder(sampleBookOne.getId(), 15, recipientEmail);
+        assertEquals(35L, getAvailableBooks(sampleBookOne));
+
+        // when
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, "second.user@example.org");
+        manageOrderService.updateOrderStatus(command);
+
+        // then
+        assertEquals(OrderStatus.NEW, queryOrderUseCase.findOneById(orderId).get().getStatus());
+        assertEquals(35L, getAvailableBooks(sampleBookOne));
+    }
+
+    private Long placeOrder(Long bookId, int quantity, String recipientEmail){
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
-                .recipient(createRecipient())
+                .recipient(createRecipient(recipientEmail))
                 .item(new OrderItemCommand(bookId, quantity))
                 .build();
 
         PlaceOrderResponse response = manageOrderService.placeOrder(command);
         return response.getOrderId();
+    }
+
+    private Long placeOrder(Long bookId, int quantity){
+        return placeOrder(bookId, quantity, "first.user@example.org");
     }
 
     private Book givenSampleBookTwo(long available) {
@@ -175,14 +204,19 @@ class OrderServiceTestIT {
         return catalogUseCase.findOneById(sampleBookOne.getId()).get().getAvailableBooks();
     }
 
+    private Recipient createRecipient(String email) {
+        return Recipient.builder().email(email).build();
+    }
+
     private Recipient createRecipient() {
-        return Recipient.builder().email("john@example.org").build();
+        return Recipient.builder().email("first.user@example.org").build();
     }
 
     private Long generateSamplePaidOrder() {
         Book sampleBookOne = givenSampleBookOne(50L);
         Long orderId = placeOrder(sampleBookOne.getId(), 15);
-        manageOrderService.updateOrderStatus(orderId, OrderStatus.PAID);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, "admin@example.org");
+        manageOrderService.updateOrderStatus(command);
         return orderId;
     }
 
