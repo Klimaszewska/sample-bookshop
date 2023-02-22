@@ -4,7 +4,6 @@ import com.example.samplebookshop.catalog.application.port.CatalogUseCase;
 import com.example.samplebookshop.catalog.db.BookJpaRepository;
 import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.clock.Clock;
-import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
@@ -19,7 +18,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 
 import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(properties = "app.order.payment-period=1H")
 @AutoConfigureTestDatabase

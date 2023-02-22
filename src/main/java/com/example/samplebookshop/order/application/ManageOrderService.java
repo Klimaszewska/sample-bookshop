@@ -5,7 +5,10 @@ import com.example.samplebookshop.catalog.domain.Book;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.db.OrderJpaRepository;
 import com.example.samplebookshop.order.db.RecipientJpaRepository;
-import com.example.samplebookshop.order.domain.*;
+import com.example.samplebookshop.order.domain.Order;
+import com.example.samplebookshop.order.domain.OrderItem;
+import com.example.samplebookshop.order.domain.Recipient;
+import com.example.samplebookshop.order.domain.UpdateStatusResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +35,7 @@ public class ManageOrderService implements ManageOrderUseCase {
         Order order = Order
                 .builder()
                 .recipient(obtainRecipient(command.getRecipient()))
+                .delivery(command.getDelivery())
                 .items(items)
                 .build();
         Order savedOrder = orderJpaRepository.save(order);

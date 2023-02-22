@@ -1,5 +1,6 @@
 package com.example.samplebookshop.order.application.port;
 
+import com.example.samplebookshop.order.domain.Delivery;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,8 @@ public interface ManageOrderUseCase {
         @Singular
         List<OrderItemCommand> items;
         Recipient recipient;
+        @Builder.Default
+        Delivery delivery = Delivery.COURIER;
     }
 
     @Value

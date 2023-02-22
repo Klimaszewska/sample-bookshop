@@ -3,6 +3,7 @@ package com.example.samplebookshop.order.application;
 import com.example.samplebookshop.order.domain.OrderItem;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
+import com.example.samplebookshop.order.price.OrderPrice;
 import lombok.Value;
 
 import java.math.BigDecimal;
@@ -17,10 +18,6 @@ class RichOrder {
     Set<OrderItem> items;
     Recipient recipient;
     LocalDateTime createdAt;
-
-    public BigDecimal totalPrice() {
-        return items.stream()
-                .map(item -> item.getBook().getPrice().multiply(new BigDecimal(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+    OrderPrice orderPrice;
+    BigDecimal finalPrice;
 }

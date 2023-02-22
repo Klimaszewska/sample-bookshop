@@ -8,6 +8,7 @@ import com.example.samplebookshop.order.application.port.ManageOrderUseCase.Plac
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.UpdateStatusCommand;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
+import com.example.samplebookshop.order.domain.Delivery;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
 import org.junit.jupiter.api.Assertions;
@@ -214,11 +215,63 @@ class OrderServiceTestIT {
         assertEquals(35L, getAvailableBooks(sampleBookOne));
     }
 
+    @Test
+    void shippingCostsAreAddedToTotalOrderPrice() {
+        // given
+        Book book = givenBook(50L, "49.90");
+
+        // when
+        Long orderId = placeOrder(book.getId(), 1);
+
+        // then
+        assertEquals("59.80", orderOf(orderId).getFinalPrice().toPlainString());
+    }
+
+    @Test
+    void shippingCostsAreDiscountedOver100zlotys() {
+        // given
+        Book book = givenBook(50L, "49.90");
+
+        // when
+        Long orderId = placeOrder(book.getId(), 3);
+
+        // then
+        RichOrder order = orderOf(orderId);
+        assertEquals("149.70", order.getFinalPrice().toPlainString());
+        assertEquals("149.70", order.getOrderPrice().getItemsPrice().toPlainString());
+    }
+
+    @Test
+    void cheapestBookIsHalfPricedWhenTotalOver200zlotys() {
+        // given
+        Book book = givenBook(50L, "49.90");
+
+        // when
+        Long orderId = placeOrder(book.getId(), 5);
+
+        // then
+        RichOrder order = orderOf(orderId);
+        assertEquals("224.55", order.getFinalPrice().toPlainString());
+    }
+
+    @Test
+    void cheapestBookIsFreeWhenTotalOver400zlotys() {
+        // given
+        Book book = givenBook(50L, "49.90");
+
+        // when
+        Long orderId = placeOrder(book.getId(), 10);
+
+        // then
+        assertEquals("449.10", orderOf(orderId).getFinalPrice().toPlainString());
+    }
+
     private Long placeOrder(Long bookId, int quantity, String recipientEmail){
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
                 .recipient(createRecipient(recipientEmail))
                 .item(new OrderItemCommand(bookId, quantity))
+                .delivery(Delivery.COURIER)
                 .build();
 
         PlaceOrderResponse response = manageOrderService.placeOrder(command);
@@ -227,6 +280,14 @@ class OrderServiceTestIT {
 
     private Long placeOrder(Long bookId, int quantity){
         return placeOrder(bookId, quantity, "first.user@example.org");
+    }
+
+    private RichOrder orderOf(Long orderId) {
+        return queryOrderUseCase.findOneById(orderId).get();
+    }
+
+    private Book givenBook(long available, String price) {
+        return bookJpaRepository.save(new Book("Java Concurrency in Practice", 2006, new BigDecimal(price), available));
     }
 
     private Book givenSampleBookTwo(long available) {
