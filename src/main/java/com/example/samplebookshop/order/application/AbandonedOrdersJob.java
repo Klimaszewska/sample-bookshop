@@ -1,5 +1,6 @@
 package com.example.samplebookshop.order.application;
 
+import com.example.samplebookshop.clock.Clock;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.db.OrderJpaRepository;
 import com.example.samplebookshop.order.domain.Order;
@@ -21,12 +22,13 @@ public class AbandonedOrdersJob {
     private final OrderJpaRepository orderRepository;
     private final ManageOrderUseCase manageOrderUseCase;
     private final OrderProperties properties;
+    private final Clock clock;
 
     @Scheduled(cron = "${app.order.abandon-cron}")
     @Transactional
     public void run(){
         Duration paymentPeriod = properties.getPaymentPeriod();
-        List<Order> ordersTobeAbandoned = orderRepository.findByOrderStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, LocalDateTime.now().minus(paymentPeriod));
+        List<Order> ordersTobeAbandoned = orderRepository.findByOrderStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, clock.now().minus(paymentPeriod));
         ordersTobeAbandoned.forEach(order -> {
             //TODO: fix the email reference when implementing security features
             String adminEmail = "admin@example.org";
