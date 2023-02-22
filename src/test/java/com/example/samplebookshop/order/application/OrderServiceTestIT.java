@@ -177,6 +177,43 @@ class OrderServiceTestIT {
         assertEquals(35L, getAvailableBooks(sampleBookOne));
     }
 
+    @Test
+    void adminCanRevokeOtherUsersOrder() {
+        // given
+        Book sampleBookOne = givenSampleBookOne(50L);
+        String recipientEmail = "first.user@example.org";
+        Long orderId = placeOrder(sampleBookOne.getId(), 15, recipientEmail);
+        assertEquals(35L, getAvailableBooks(sampleBookOne));
+
+        // when
+        String admin = "admin@example.org";
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, admin);
+        manageOrderService.updateOrderStatus(command);
+
+        // then
+        assertEquals(OrderStatus.CANCELLED, queryOrderUseCase.findOneById(orderId).get().getStatus());
+        assertEquals(50L, getAvailableBooks(sampleBookOne));
+    }
+
+    @Test
+    void adminCanMarkOrderAsPaid(){
+        // given
+        Book sampleBookOne = givenSampleBookOne(50L);
+        String recipientEmail = "first.user@example.org";
+        Long orderId = placeOrder(sampleBookOne.getId(), 15, recipientEmail);
+        assertEquals(35L, getAvailableBooks(sampleBookOne));
+
+        // when
+        //TODO: fix the email reference when implementing security features
+        String admin = "admin@example.org";
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, admin);
+        manageOrderService.updateOrderStatus(command);
+
+        // then
+        assertEquals(OrderStatus.PAID, queryOrderUseCase.findOneById(orderId).get().getStatus());
+        assertEquals(35L, getAvailableBooks(sampleBookOne));
+    }
+
     private Long placeOrder(Long bookId, int quantity, String recipientEmail){
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
