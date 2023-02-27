@@ -34,6 +34,7 @@ public class CatalogController {
 
     private final CatalogUseCase catalog;
 
+    //security: access for all users
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<Book> findAll(@RequestParam Optional<String> title, @RequestParam Optional<String> author) {
@@ -48,7 +49,7 @@ public class CatalogController {
         }
     }
 
-
+    //security: access for all users
     @GetMapping("/{id}")
     public ResponseEntity<?> findOneById(@PathVariable Long id) {
         return catalog
@@ -57,7 +58,8 @@ public class CatalogController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    //security: access for admins only
+    @PatchMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> addBook(@Valid @RequestBody RestBookCommand command) {
         Book book = this.catalog.addBook(command.toCreateCommand());
@@ -65,16 +67,14 @@ public class CatalogController {
         return ResponseEntity.created(uri).build();
     }
 
-    private URI createBookUri(Book book) {
-        return new CustomUri("/" + book.getId().toString()).toUri();
-    }
-
+    //security: access for admins only
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable Long id) {
         catalog.removeById(id);
     }
 
+    //security: access for admins only
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateBook(@PathVariable Long id, @RequestBody RestBookCommand command) {
@@ -85,6 +85,7 @@ public class CatalogController {
         }
     }
 
+    //security: access for admins only
     @PutMapping(value = "/{id}/cover", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void addBookCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
@@ -97,10 +98,15 @@ public class CatalogController {
         ));
     }
 
+    //security: access for admins only
     @DeleteMapping("/{id}/cover")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeBookCover(@PathVariable Long id){
         catalog.removeBookCover(id);
+    }
+
+    private URI createBookUri(Book book) {
+        return new CustomUri("/" + book.getId().toString()).toUri();
     }
 
     @Data

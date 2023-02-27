@@ -18,6 +18,7 @@ public class AuthorController {
 
     private final AuthorUseCase authors;
 
+    //security: access for all users
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<Author> findAll() {

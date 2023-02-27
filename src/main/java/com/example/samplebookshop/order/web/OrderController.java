@@ -28,12 +28,14 @@ public class OrderController {
     private final ManageOrderUseCase manageOrder;
     private final QueryOrderUseCase queryOrder;
 
+    //security: access for admins only
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<RichOrder> findAll() {
         return queryOrder.findAll();
     }
 
+    //security: access for admins and the user who made the order
     @GetMapping("/{id}")
     public ResponseEntity<RichOrder> findOneById(@PathVariable Long id) {
         return queryOrder.findOneById(id)
@@ -41,6 +43,7 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    //security: access for all users
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> placeOrder(@RequestBody PlaceOrderCommand command) {
@@ -49,6 +52,7 @@ public class OrderController {
         return ResponseEntity.created(uri).build();
     }
 
+    //security: access for admins (all updates) and the user who made the order (only revoking the order)
     @PutMapping("/{id}/status")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
@@ -61,6 +65,7 @@ public class OrderController {
         this.manageOrder.updateOrderStatus(command);
     }
 
+    //security: access for admins only
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteOrder(@PathVariable Long id) {

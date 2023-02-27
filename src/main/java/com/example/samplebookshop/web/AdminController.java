@@ -15,6 +15,7 @@ public class AdminController {
     private final CatalogInitializerUseCase initializer;
 
 
+    //security: access for admins only
     @PostMapping("/initialization")
     public void run(String... args) {
         initializer.initialize();
