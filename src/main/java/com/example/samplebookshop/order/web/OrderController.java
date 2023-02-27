@@ -53,7 +53,7 @@ public class OrderController {
     }
 
     //security: access for admins (all updates) and the user who made the order (only revoking the order)
-    @PutMapping("/{id}/status")
+    @PatchMapping("/{id}/status")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String status = body.get("status");
