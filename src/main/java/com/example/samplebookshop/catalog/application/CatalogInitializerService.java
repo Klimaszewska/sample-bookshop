@@ -77,7 +77,11 @@ public class CatalogInitializerService implements CatalogInitializerUseCase {
                 .build();
 
         ManageOrderUseCase.PlaceOrderResponse placeOrderResponse = manageOrder.placeOrder(placeOrderCommand);
-        log.info("Created order with id: " + placeOrderResponse.getOrderId());
+        String result = placeOrderResponse.handle(
+                orderId -> "Created ORDER with id: " + orderId,
+                error -> "Failed to created order: " + error
+        );
+        log.info(result);
 
         // list all orders
         queryOrder.findAll()

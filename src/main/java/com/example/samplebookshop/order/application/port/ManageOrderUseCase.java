@@ -1,17 +1,14 @@
 package com.example.samplebookshop.order.application.port;
 
+import com.example.samplebookshop.commons.Either;
 import com.example.samplebookshop.order.domain.Delivery;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.order.domain.Recipient;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Singular;
-import lombok.Value;
+import lombok.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.User;
 
-import java.util.Arrays;
 import java.util.List;
-
-import static java.util.Collections.emptyList;
 
 public interface ManageOrderUseCase {
     PlaceOrderResponse placeOrder(PlaceOrderCommand command);
@@ -41,36 +38,43 @@ public interface ManageOrderUseCase {
     class UpdateStatusCommand{
         Long orderId;
         OrderStatus status;
-        String email;
+        User user;
     }
 
-    @Value
-    class PlaceOrderResponse {
-        boolean success;
-        Long orderId;
-        List<String> errors;
+    class PlaceOrderResponse extends Either<String, Long> {
+        PlaceOrderResponse(boolean success, String left, Long right) {
+            super(success, left, right);
+        }
 
         public static PlaceOrderResponse success(Long orderId) {
-            return new PlaceOrderResponse(true, orderId, emptyList());
+            return new PlaceOrderResponse(true, null, orderId);
         }
 
-        public static PlaceOrderResponse failure(String... errors) {
-            return new PlaceOrderResponse(false, null, Arrays.asList(errors));
+        public static PlaceOrderResponse failure(String error) {
+            return new PlaceOrderResponse(false, error, null);
         }
     }
 
-    @Value
-    class UpdateStatusResponse {
-        boolean success;
-        String status;
-        List<String> errors;
-
-        public static UpdateStatusResponse success(String status) {
-            return new UpdateStatusResponse(true, status, emptyList());
+    class UpdateStatusResponse extends Either<Error, OrderStatus> {
+        UpdateStatusResponse(boolean success, Error left, OrderStatus right) {
+            super(success, left, right);
         }
 
-        public static UpdateStatusResponse failure(String... errors) {
-            return new UpdateStatusResponse(false, null, Arrays.asList(errors));
+        public static UpdateStatusResponse success(OrderStatus status) {
+            return new UpdateStatusResponse(true, null, status);
         }
+
+        public static UpdateStatusResponse failure(Error error) {
+            return new UpdateStatusResponse(false, error, null);
+        }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    enum Error {
+        //mapping between a custom status ("NOT_FOUND") and its corresponding, specific HttpStatus
+        NOT_FOUND(HttpStatus.NOT_FOUND),
+        FORBIDDEN(HttpStatus.FORBIDDEN);
+        private final HttpStatus status;
     }
 }

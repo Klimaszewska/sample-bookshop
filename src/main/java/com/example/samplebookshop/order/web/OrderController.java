@@ -3,7 +3,6 @@ package com.example.samplebookshop.order.web;
 import com.example.samplebookshop.order.application.RichOrder;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
-import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.security.UserSecurity;
@@ -39,7 +38,6 @@ public class OrderController {
         return queryOrder.findAll();
     }
 
-    //security: access for admins and the user who made the order
     @Secured({"ROLE_ADMIN", "ROLE_USER"})
     @GetMapping("/{id}")
     public ResponseEntity<RichOrder> findOneById(@PathVariable Long id, @AuthenticationPrincipal User user) {
@@ -59,23 +57,26 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> placeOrder(@RequestBody PlaceOrderCommand command) {
-        PlaceOrderResponse placeOrderResponse = this.manageOrder.placeOrder(command);
-        URI uri = createOrderUri(placeOrderResponse.getOrderId());
-        return ResponseEntity.created(uri).build();
+        return this.manageOrder.placeOrder(command)
+                .handle(
+                        orderId -> ResponseEntity.created(createOrderUri(orderId)).build(),
+                        error -> ResponseEntity.badRequest().body(error)
+                );
     }
 
-    //security: access for admins (all updates) and the user who made the order (only revoking the order)
     @Secured({"ROLE_ADMIN", "ROLE_USER"})
     @PatchMapping("/{id}/status")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<Object> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body, @AuthenticationPrincipal User user) {
         String status = body.get("status");
         OrderStatus orderStatus = OrderStatus
                 .parseString(status)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + status));
-        //TODO: fix the email reference when implementing security features
-        UpdateStatusCommand command = new UpdateStatusCommand(id, orderStatus, "admin@example.org");
-        this.manageOrder.updateOrderStatus(command);
+        UpdateStatusCommand command = new UpdateStatusCommand(id, orderStatus, user);
+        return manageOrder.updateOrderStatus(command)
+                .handle(
+                        newStatus -> ResponseEntity.accepted().build(),
+                        error -> ResponseEntity.status(error.getStatus()).build()
+                );
     }
 
     @Secured({"ROLE_ADMIN"})

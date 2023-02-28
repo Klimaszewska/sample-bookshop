@@ -7,14 +7,14 @@ import com.example.samplebookshop.order.domain.Order;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.*;
+import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.UpdateStatusCommand;
 
 @Component
 @AllArgsConstructor
@@ -23,6 +23,7 @@ public class AbandonedOrdersJob {
     private final ManageOrderUseCase manageOrderUseCase;
     private final OrderProperties properties;
     private final Clock clock;
+    private final User systemUser;
 
     @Scheduled(cron = "${app.order.abandon-cron}")
     @Transactional
@@ -30,9 +31,7 @@ public class AbandonedOrdersJob {
         Duration paymentPeriod = properties.getPaymentPeriod();
         List<Order> ordersTobeAbandoned = orderRepository.findByOrderStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, clock.now().minus(paymentPeriod));
         ordersTobeAbandoned.forEach(order -> {
-            //TODO: fix the email reference when implementing security features
-            String adminEmail = "admin@example.org";
-            UpdateStatusCommand command = new UpdateStatusCommand(order.getId(), OrderStatus.ABANDONED, adminEmail);
+            UpdateStatusCommand command = new UpdateStatusCommand(order.getId(), OrderStatus.ABANDONED, systemUser);
             manageOrderUseCase.updateOrderStatus(command);
         });
     }

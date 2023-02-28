@@ -16,10 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -88,8 +91,7 @@ class OrderServiceTestIT {
         assertEquals(35L, getAvailableBooks(sampleBookOne));
 
         // when
-        //TODO: fix the email reference when implementing security features
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, recipientEmail);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user(recipientEmail));
         manageOrderService.updateOrderStatus(command);
 
         // then
@@ -104,7 +106,7 @@ class OrderServiceTestIT {
         String recipientEmail = "first.user@example.org";
 
         // when
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, recipientEmail);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user(recipientEmail));
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
             manageOrderService.updateOrderStatus(command);
         });
@@ -118,11 +120,11 @@ class OrderServiceTestIT {
         // given
         Long orderId = generateSamplePaidOrder();
         String recipientEmail = "first.user@example.org";
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.SHIPPED, recipientEmail);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.SHIPPED, user(recipientEmail));
         manageOrderService.updateOrderStatus(command);
 
         // when
-        UpdateStatusCommand cancellingCommand = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, recipientEmail);
+        UpdateStatusCommand cancellingCommand = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user(recipientEmail));
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
             manageOrderService.updateOrderStatus(cancellingCommand);
         });
@@ -170,7 +172,7 @@ class OrderServiceTestIT {
         assertEquals(35L, getAvailableBooks(sampleBookOne));
 
         // when
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, "second.user@example.org");
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user("second.user@example.org"));
         manageOrderService.updateOrderStatus(command);
 
         // then
@@ -187,8 +189,7 @@ class OrderServiceTestIT {
         assertEquals(35L, getAvailableBooks(sampleBookOne));
 
         // when
-        String admin = "admin@example.org";
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, admin);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, adminUser());
         manageOrderService.updateOrderStatus(command);
 
         // then
@@ -205,9 +206,7 @@ class OrderServiceTestIT {
         assertEquals(35L, getAvailableBooks(sampleBookOne));
 
         // when
-        //TODO: fix the email reference when implementing security features
-        String admin = "admin@example.org";
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, admin);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, adminUser());
         manageOrderService.updateOrderStatus(command);
 
         // then
@@ -274,8 +273,7 @@ class OrderServiceTestIT {
                 .delivery(Delivery.COURIER)
                 .build();
 
-        PlaceOrderResponse response = manageOrderService.placeOrder(command);
-        return response.getOrderId();
+        return manageOrderService.placeOrder(command).getRight();
     }
 
     private Long placeOrder(Long bookId, int quantity){
@@ -302,6 +300,14 @@ class OrderServiceTestIT {
         return catalogUseCase.findOneById(sampleBookOne.getId()).get().getAvailableBooks();
     }
 
+    private User user(String email) {
+        return new User(email, "", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+    }
+
+    private User adminUser() {
+        return new User("admin", "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+    }
+
     private Recipient createRecipient(String email) {
         return Recipient.builder().email(email).build();
     }
@@ -313,7 +319,7 @@ class OrderServiceTestIT {
     private Long generateSamplePaidOrder() {
         Book sampleBookOne = givenSampleBookOne(50L);
         Long orderId = placeOrder(sampleBookOne.getId(), 15);
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, "admin@example.org");
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, adminUser());
         manageOrderService.updateOrderStatus(command);
         return orderId;
     }
