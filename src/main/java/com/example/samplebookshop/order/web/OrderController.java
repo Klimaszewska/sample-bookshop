@@ -1,16 +1,16 @@
 package com.example.samplebookshop.order.web;
 
+import com.example.samplebookshop.order.application.RichOrder;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderCommand;
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
-import com.example.samplebookshop.order.application.RichOrder;
 import com.example.samplebookshop.order.domain.OrderStatus;
 import com.example.samplebookshop.web.CustomUri;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,7 +18,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.*;
+import static com.example.samplebookshop.order.application.port.ManageOrderUseCase.UpdateStatusCommand;
 
 @RequestMapping("/orders")
 @RestController
@@ -28,7 +28,7 @@ public class OrderController {
     private final ManageOrderUseCase manageOrder;
     private final QueryOrderUseCase queryOrder;
 
-    //security: access for admins only
+    @Secured({"ROLE_ADMIN"})
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<RichOrder> findAll() {
@@ -36,6 +36,7 @@ public class OrderController {
     }
 
     //security: access for admins and the user who made the order
+    @Secured({"ROLE_ADMIN", "ROLE_USER"})
     @GetMapping("/{id}")
     public ResponseEntity<RichOrder> findOneById(@PathVariable Long id) {
         return queryOrder.findOneById(id)
@@ -43,7 +44,6 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //security: access for all users
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> placeOrder(@RequestBody PlaceOrderCommand command) {
@@ -53,6 +53,7 @@ public class OrderController {
     }
 
     //security: access for admins (all updates) and the user who made the order (only revoking the order)
+    @Secured({"ROLE_ADMIN", "ROLE_USER"})
     @PatchMapping("/{id}/status")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
@@ -65,7 +66,7 @@ public class OrderController {
         this.manageOrder.updateOrderStatus(command);
     }
 
-    //security: access for admins only
+    @Secured({"ROLE_ADMIN"})
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteOrder(@PathVariable Long id) {
