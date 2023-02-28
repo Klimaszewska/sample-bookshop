@@ -1,4 +1,4 @@
-package com.example.samplebookshop;
+package com.example.samplebookshop.security;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,7 +22,7 @@ public class BookshopSecurityConfiguration extends WebSecurityConfigurerAdapter 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
-                .withUser("first.user@example.org")
+                .withUser("sample@sample.com")
                 .password("{noop}xxx")
                 .roles("USER")
                 .and()

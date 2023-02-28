@@ -6,11 +6,14 @@ import com.example.samplebookshop.order.application.port.ManageOrderUseCase.Plac
 import com.example.samplebookshop.order.application.port.ManageOrderUseCase.PlaceOrderResponse;
 import com.example.samplebookshop.order.application.port.QueryOrderUseCase;
 import com.example.samplebookshop.order.domain.OrderStatus;
+import com.example.samplebookshop.security.UserSecurity;
 import com.example.samplebookshop.web.CustomUri;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -27,6 +30,7 @@ public class OrderController {
 
     private final ManageOrderUseCase manageOrder;
     private final QueryOrderUseCase queryOrder;
+    private final UserSecurity userSecurity;
 
     @Secured({"ROLE_ADMIN"})
     @GetMapping
@@ -38,10 +42,18 @@ public class OrderController {
     //security: access for admins and the user who made the order
     @Secured({"ROLE_ADMIN", "ROLE_USER"})
     @GetMapping("/{id}")
-    public ResponseEntity<RichOrder> findOneById(@PathVariable Long id) {
+    public ResponseEntity<RichOrder> findOneById(@PathVariable Long id, @AuthenticationPrincipal User user) {
         return queryOrder.findOneById(id)
-                .map(ResponseEntity::ok)
+                .map(order -> authorize(order, user))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    private ResponseEntity<RichOrder> authorize(RichOrder order, @AuthenticationPrincipal User user){
+        if (userSecurity.isOwnerOrAdmin(order.getRecipient().getEmail(), user)){
+            return ResponseEntity.ok(order);
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     @PostMapping
