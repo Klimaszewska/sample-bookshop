@@ -11,8 +11,13 @@ public class BookshopUserDetailsService implements UserDetailsService {
 
     private final UserEntityRepository repository;
 
+    private final AdminConfig adminConfig;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        if (adminConfig.getUsername().equalsIgnoreCase(username)) {
+            return adminConfig.adminUser();
+        }
         return repository.findByUsernameIgnoreCase(username)
                 .map(UserEntityDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException(username));

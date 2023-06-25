@@ -1,26 +1,33 @@
 package com.example.samplebookshop.security;
 
+import com.example.samplebookshop.user.db.UserEntityRepository;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.List;
-
+@AllArgsConstructor
 @Configuration
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class BookshopSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    private final UserEntityRepository userEntityRepository;
+    private final AdminConfig adminConfig;
+
     @Bean
     User systemUser() {
-        return new User("systemUser", "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        return adminConfig.adminUser();
     }
 
     @Override
@@ -42,13 +49,20 @@ public class BookshopSecurityConfiguration extends WebSecurityConfigurerAdapter 
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("sample@sample.com")
-                .password("{noop}xxx")
-                .roles("USER")
-                .and()
-                .withUser("admin")
-                .password("{noop}xxx")
-                .roles("ADMIN");
+        auth.authenticationProvider(createAuthenticationProvider());
+    }
+
+    @Bean
+    AuthenticationProvider createAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        BookshopUserDetailsService userDetailsService = new BookshopUserDetailsService(userEntityRepository, adminConfig);
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(createPasswordEncoder());
+        return provider;
+    }
+
+    @Bean
+    PasswordEncoder createPasswordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
